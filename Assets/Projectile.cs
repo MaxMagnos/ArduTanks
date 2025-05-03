@@ -14,10 +14,12 @@ public class Projectile : MonoBehaviour
     private float progress;
     private float scaledSpeed;
 
-    public void Initialize(float distance)
+    public GameObject parentTank { get; private set; }
+
+    public void Initialize(float distance, GameObject tank)
     {
         launchDistance = distance;
-
+        parentTank = tank;
         startPosition = transform.position + (transform.rotation * Vector3.up);
         targetPosition = startPosition + (transform.rotation * Vector3.up) * launchDistance * distanceMult;
         progress = 0f;

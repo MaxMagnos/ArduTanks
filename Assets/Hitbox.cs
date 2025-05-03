@@ -1,22 +1,29 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Hitbox : MonoBehaviour
 {
-    private Rigidbody rb;
-
+    [SerializeField]private Projectile projectile;
+    [SerializeField]private GameObject parentTank;
+    [SerializeField]private TagHandle parentTankTag;
+    
     private void OnEnable()
     {
-        rb = GetComponent<Rigidbody>();
+        projectile = GetComponentInParent<Projectile>();
+        parentTank = projectile.parentTank;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.gameObject.name);
-        IDamageable damageable = other.gameObject.GetComponent<IDamageable>();
-        if (damageable != null)
+        if (!parentTank)
         {
-            damageable.TakeDamage(1);
+            parentTank = projectile.parentTank;
+        }
+        
+        if (other.gameObject.name != parentTank.name)
+        {
+            other.gameObject.GetComponent<IDamageable>()?.TakeDamage(1);
         }
     }
 }

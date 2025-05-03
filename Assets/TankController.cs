@@ -91,7 +91,7 @@ public class TankController : MonoBehaviour
         isFiring = true;
         
         var projectile = Instantiate(projectilePrefab, transform.position, head.transform.rotation);
-        projectile.GetComponent<Projectile>().Initialize(barrelInput);
+        projectile.GetComponent<Projectile>().Initialize(barrelInput, this.gameObject);
             
         yield return new WaitForSeconds(fireCooldown);
         isFiring = false;
