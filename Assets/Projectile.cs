@@ -12,6 +12,7 @@ public class Projectile : MonoBehaviour
     private Vector3 targetPosition;
     private float launchDistance;
     private float progress;
+    private float scaledSpeed;
 
     public void Initialize(float distance)
     {
@@ -24,7 +25,7 @@ public class Projectile : MonoBehaviour
 
     private void Update()
     {
-        progress += speed * Time.deltaTime;
+        progress += (speed / launchDistance) * Time.deltaTime;
         float clampedProgress = Mathf.Clamp01(progress);
 
         Vector3 linearPosition = Vector3.Lerp(startPosition, targetPosition, clampedProgress);

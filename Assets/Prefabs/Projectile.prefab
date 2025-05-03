@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   height: 30
-  speed: 1
+  speed: 30
   distanceMult: 0.5
   heightCurve:
     serializedVersion: 2
