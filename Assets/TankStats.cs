@@ -9,6 +9,11 @@ public class TankStats : MonoBehaviour, IDamageable
     public int startHealth;
     public int maxHealth;
 
+    [Header("Ammo")] 
+    public int ammo;
+    public int startAmmo;
+    public int maxAmmo;
+
     private void Start()
     {
         health = startHealth;

@@ -139,6 +139,9 @@ MonoBehaviour:
   health: 0
   startHealth: 3
   maxHealth: 5
+  ammo: 0
+  startAmmo: 10
+  maxAmmo: 10
 --- !u!114 &8616795429396262465
 MonoBehaviour:
   m_ObjectHideFlags: 0
