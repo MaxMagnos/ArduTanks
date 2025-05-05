@@ -5,7 +5,8 @@ public class Projectile : MonoBehaviour
 {
     public float height = 5f;
     public float speed = 5f;
-    public float distanceMult;
+    public float minDistance;
+    public float maxDistance;
     public AnimationCurve heightCurve;
 
     private Vector3 startPosition;
@@ -18,10 +19,11 @@ public class Projectile : MonoBehaviour
 
     public void Initialize(float distance, GameObject tank)
     {
-        launchDistance = distance;
+        var normDistance = Mathf.InverseLerp(0, 1024f, distance);
+        launchDistance = Mathf.Lerp(minDistance, maxDistance, normDistance);
         parentTank = tank;
         startPosition = transform.position + (transform.rotation * Vector3.up);
-        targetPosition = startPosition + (transform.rotation * Vector3.up) * launchDistance * distanceMult;
+        targetPosition = startPosition + (transform.rotation * Vector3.up) * launchDistance;
         progress = 0f;
     }
 
