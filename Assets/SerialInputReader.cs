@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO.Ports;
+using System.Threading;
 using UnityEngine;
 
 public class SerialInputReader : MonoBehaviour
 {
     public static SerialInputReader Instance;
 
-    private SerialPort serialPort = new SerialPort("COM7", 9600);
+    private SerialPort serialPort;
+    private Thread serialThread;
+    private bool isRunning = false;
+
+    private ConcurrentQueue<string> serialQueue = new ConcurrentQueue<string>();
 
     public PlayerData p1Data;
     public PlayerData p2Data;
@@ -25,62 +31,58 @@ public class SerialInputReader : MonoBehaviour
 
     private void Start()
     {
-        string[] ports = SerialPort.GetPortNames();
-        Debug.Log("Available COM ports:");
-        foreach (string port in ports)
-        {
-            Debug.Log(port);
-        }
-        
-        serialPort.Open();
-        serialPort.ReadTimeout = 1;
+        serialPort = new SerialPort("COM7", 9600);
+        serialPort.ReadTimeout = 50;
         serialPort.DtrEnable = true;
         serialPort.RtsEnable = true;
+
+        try
+        {
+            serialPort.Open();
+            isRunning = true;
+
+            serialThread = new Thread(ReadSerialLoop);
+            serialThread.Start();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("Failed to open serial port: " + ex.Message);
+        }
+    }
+
+    private void ReadSerialLoop()
+    {
+        while (isRunning && serialPort != null && serialPort.IsOpen)
+        {
+            try
+            {
+                string line = serialPort.ReadLine();
+                serialQueue.Enqueue(line);
+            }
+            catch (TimeoutException)
+            {
+                // Ignore timeouts
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("Serial thread error: " + ex.Message);
+                break;
+            }
+        }
     }
 
     private void FixedUpdate()
     {
-        if (serialPort != null && serialPort.IsOpen)
+        while (serialQueue.TryDequeue(out string line))
         {
-            Debug.Log("Serialport exists and is Open");
-            try
-            {
-                // Attempt to read the line
-                string inputLine = serialPort.ReadLine();
-
-                // If ReadLine succeeds, log and parse
-                Debug.Log("Received: " + inputLine);
-                ParseData(inputLine);
-            }
-            catch (TimeoutException)
-            {
-                // A timeout occurred. Log it so you know.
-                // This is expected if data isn't arriving FROM UNITY'S PERSPECTIVE
-                // (e.g., wrong port, port conflict, or temporary connection issue)
-                // You don't necessarily need to stop anything, just be aware.
-                Debug.LogWarning("Serial Read Timeout - No full line received within 5 seconds.");
-            }
-            catch (Exception ex)
-            {
-                // Catch other potential errors (e.g., IOExceptions if port disconnects)
-                Debug.LogError("Error reading from serial port: " + ex.Message);
-                // Consider potentially closing/reopening the port here if errors persist
-            }
-        }
-        else
-        {
-            if (serialPort != null) {
-                Debug.LogWarning("Serial port is not open.");
-            } else {
-                Debug.LogWarning("Serial port object is null.");
-            }
-            // Maybe add a delay or attempt to reopen if needed
+            Debug.Log("Received: " + line);
+            ParseData(line);
         }
     }
 
     void ParseData(string data)
     {
-        // "P1:100,200,150,300;P2:90,180,160,250"
+        // Same as before
         string[] players = data.Split(';');
         foreach (string player in players)
         {
@@ -99,6 +101,9 @@ public class SerialInputReader : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        isRunning = false;
+        serialThread?.Join();
+
         if (serialPort != null && serialPort.IsOpen)
         {
             serialPort.Close();
