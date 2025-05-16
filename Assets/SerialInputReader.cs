@@ -4,6 +4,7 @@ using System.IO.Ports;
 using System.Threading;
 using UnityEngine;
 
+//Class name should honestly be changed, as it's now also Outputting serial data
 public class SerialInputReader : MonoBehaviour
 {
     public static SerialInputReader Instance;
@@ -17,6 +18,10 @@ public class SerialInputReader : MonoBehaviour
     public PlayerData p1Data;
     public PlayerData p2Data;
 
+    public bool p1Ready;
+    public bool p2Ready;
+    public int playerReadyHash;    
+    
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -78,6 +83,10 @@ public class SerialInputReader : MonoBehaviour
             Debug.Log("Received: " + line);
             ParseData(line);
         }
+        
+        //Update the hash value for the LEDs and then send it to the arduino
+        UpdatePlayerReadyHash();
+        SendIntToArduino(playerReadyHash);
     }
 
     void ParseData(string data)
@@ -108,5 +117,37 @@ public class SerialInputReader : MonoBehaviour
         {
             serialPort.Close();
         }
+    }
+
+    void SendIntToArduino(int value)
+    {
+        if (serialPort.IsOpen)
+        {
+            serialPort.WriteLine(value.ToString());
+        }
+    }
+
+    public void UpdatePlayerReady(bool ready, int player)
+    {
+        if (player == 1)
+        {
+            p1Ready = ready;
+        }
+        else if (player == 2)
+        {
+            p2Ready = ready;
+        }
+    }
+
+    private void UpdatePlayerReadyHash()
+    {
+        if (!p1Ready && !p2Ready)
+            playerReadyHash = 0;
+        else if (p1Ready && !p2Ready)
+            playerReadyHash = 1;
+        else if (!p1Ready && p2Ready)
+            playerReadyHash = 2;
+        else
+            playerReadyHash = 3;
     }
 }

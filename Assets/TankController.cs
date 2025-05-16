@@ -135,12 +135,13 @@ public class TankController : MonoBehaviour
     private IEnumerator Fire()
     {
         isFiring = true;
-        
+        SerialInputReader.Instance.UpdatePlayerReady(!isFiring, playerNumber);
         var projectile = Instantiate(projectilePrefab, transform.position, head.transform.rotation);
         projectile.GetComponent<Projectile>().Initialize(lastBarrel, this.gameObject);
             
         yield return new WaitForSeconds(fireCooldown);
         isFiring = false;
+        SerialInputReader.Instance.UpdatePlayerReady(!isFiring, playerNumber);
     }
     
     float NormalizeAngle(float angle)
